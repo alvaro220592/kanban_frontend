@@ -1,0 +1,90 @@
+<template>
+	<div class="grid">
+		<div v-for="status in statuses" :key="status.id" class="container">
+			<h3>{{ status.titulo }}</h3>
+			<VueDraggable v-model="status.cards" class="cardContainer" group="statuses" animation="150"
+				ghostClass="ghost">
+				<div v-for="card in status.cards" :key="card.id" class="card"
+					:style="{ backgroundColor: card.backgroundColor }">
+					{{ card.text }}
+				</div>
+			</VueDraggable>
+		</div>
+	</div>
+</template>
+
+<script>
+import { defineComponent, ref } from 'vue';
+import { VueDraggable } from 'vue-draggable-plus';
+
+export default defineComponent({
+	name: 'App',
+	components: {
+		VueDraggable,
+	},
+	setup() {
+		const statuses = ref([
+			{
+				id: 1,
+				titulo: 'fazer',
+				cards: [
+					{ id: 1, text: 'card 1', backgroundColor: '#FF5733' },
+					{ id: 2, text: 'card 2', backgroundColor: '#4287f5' },
+					{ id: 3, text: 'card 3', backgroundColor: '#7a52f2' },
+					{ id: 4, text: 'card 4', backgroundColor: '#1abc9c' },
+				]
+			},
+			{
+				id: 2,
+				titulo: 'fazendo',
+				cards: [
+					{ id: 5, text: 'card 5', backgroundColor: '#e74c3c' },
+					{ id: 6, text: 'card 6', backgroundColor: '#3498db' },
+				]
+			},
+			{
+				id: 3,
+				titulo: 'feito',
+				cards: [
+					{ id: 7, text: 'card 7', backgroundColor: '#9b59b6' },
+				]
+			}
+		]);
+
+		return { statuses };
+	}
+});
+</script>
+
+<style>
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: 20px;
+}
+
+.container {
+	background-color: #ccc;
+	padding: 10px;
+}
+
+.cardContainer {
+	margin-top: 10px;
+	border: 2px dashed #ddd;
+	padding: 10px;
+}
+
+.card {
+	background-color: #f4f4f4;
+	border: 1px solid #ddd;
+	padding: 10px;
+	margin-bottom: 5px;
+	border-radius: 4px;
+	cursor: grab;
+}
+
+.ghost {
+	opacity: 0.6;
+	background-color: #f4f4f4;
+}
+</style>

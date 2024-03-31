@@ -1,0 +1,71 @@
+<template>
+	<div class="grid">
+		<VueDraggable v-model="list1" class="container" group="people" animation="150" ghostClass="ghost">
+			<div v-for="item in list1" :key="item.id" class="item">
+				{{ item.name }}
+			</div>
+		</VueDraggable>
+
+		<VueDraggable v-model="list2" class="container" group="people" animation="150" ghostClass="ghost">
+			<div v-for="item in list2" :key="item.id" class="item">
+				{{ item.name }}
+			</div>
+		</VueDraggable>
+	</div>
+</template>
+
+<script>
+import { defineComponent, ref } from 'vue';
+import { VueDraggable } from 'vue-draggable-plus';
+
+export default defineComponent({
+	name: 'App',
+	components: {
+		VueDraggable,
+	},
+	setup() {
+		const list1 = ref([
+			{ name: 'Joao', id: 1 },
+			{ name: 'Jean', id: 2 },
+			{ name: 'Johanna', id: 3 },
+			{ name: 'Juan', id: 4 },
+		]);
+
+		const list2 = ref([]);
+
+		return { list1, list2 };
+	},
+});
+</script>
+
+<style>
+.grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 20px;
+}
+
+.container {
+	background-color: #353535;
+	padding: 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	border-radius: 4px;
+	height: 100vh;
+}
+
+.item {
+	background-color: #6a1783;
+	color: white;
+	height: 50px;
+	line-height: 30px;
+	text-align: center;
+	cursor: move;
+	border-radius: 4px;
+}
+
+.ghost {
+	opacity: 0;
+}
+</style>

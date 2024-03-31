@@ -1,0 +1,125 @@
+<template>
+	<div class="board">
+		<div v-for="status in statuses" :key="status.id" class="coluna">
+			<h3>{{ status.titulo }}</h3>
+			<VueDraggable
+				v-model="status.cards"
+				class="cardContainer"
+				group="statuses"
+				animation="150"
+				ghostClass="ghost"
+				dragClass="dragging"
+				:data-status_id="status.id"
+				@start="drag"
+				@end="drop"
+			>
+				<div v-for="card in status.cards" :key="card.id" class="card" :data-card_id="card.id"
+					:style="{ backgroundColor: card.backgroundColor }">
+					{{ card.text }}
+				</div>
+			</VueDraggable>
+		</div>
+	</div>
+</template>
+
+<script>
+import { defineComponent, ref } from 'vue';
+import { VueDraggable } from 'vue-draggable-plus';
+
+export default defineComponent({
+	name: 'App',
+	components: {
+		VueDraggable,
+	},
+	setup() {
+		const statuses = ref([
+			{
+				id: 1,
+				titulo: 'fazer',
+				cards: [
+					{ id: 1, text: 'card 1', backgroundColor: '#FF5733' },
+					{ id: 2, text: 'card 2', backgroundColor: '#4287f5' },
+					{ id: 3, text: 'card 3', backgroundColor: '#7a52f2' },
+					{ id: 4, text: 'card 4', backgroundColor: '#1abc9c' },
+				]
+			},
+			{
+				id: 2,
+				titulo: 'fazendo',
+				cards: [
+					{ id: 5, text: 'card 5', backgroundColor: '#e74c3c' },
+					{ id: 6, text: 'card 6', backgroundColor: '#3498db' },
+				]
+			},
+			{
+				id: 3,
+				titulo: 'feito',
+				cards: [
+					{ id: 7, text: 'card 7', backgroundColor: '#9b59b6' },
+				]
+			}
+		]);
+
+		const drag = () => {
+			// console.log(event.item.dataset.card_id)
+		}
+
+		const drop = (event) => {
+			let status_id = event.to.dataset.status_id;
+			let card_id = event.item.dataset.card_id;
+
+			console.log({'status novo': status_id}, {'card': card_id} );
+		}
+
+		return {
+			statuses,
+			drag,
+			drop
+		};
+	}
+});
+</script>
+
+<style>
+.board {
+	background-color: #ff00cc;
+	padding: 10px;
+	max-width: 100%;
+	overflow-x: auto;
+	display: flex;
+	flex-direction: row;
+	gap: 10px;
+	min-height: 100vh;
+}
+
+.coluna {
+	background-color: #ccc;
+	padding: 10px;
+	width: 300px;
+}
+
+.cardContainer {
+	margin-top: 10px;
+	border: 2px dashed #6200ff;
+	padding: 10px;
+}
+
+.card {
+	background-color: #f4f4f4;
+	border: 1px solid #ddd;
+	padding: 10px;
+	margin-bottom: 5px;
+	border-radius: 4px;
+	cursor: grab;
+}
+
+.ghost {
+	opacity: 0;
+	background-color: #f4f4f4;
+}
+
+.dragging {
+	opacity: 1 !important;
+	;
+}
+</style>

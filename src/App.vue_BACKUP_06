@@ -1,0 +1,118 @@
+<template>
+	<div class="board">
+		<div v-for="status in statuses" :key="status.id" class="coluna">
+			<h3>{{ status.titulo }}</h3>
+
+			<VueDraggable
+				v-model="status.cards"
+				class="cardContainer cardContainerBorder"
+				group="statuses"
+				animation="150"
+				ghostClass="ghost"
+				:data-status_id="status.id"
+				@start="drag"
+				@end="drop"
+			>
+				<div v-for="card in status.cards" :key="card.id" class="card" :data-card_id="card.id"
+					:style="{ backgroundColor: card.backgroundColor }">
+					{{ card.text }}
+				</div>
+			</VueDraggable>
+		</div>
+	</div>
+</template>
+
+<script>
+import { defineComponent, ref } from 'vue';
+import { VueDraggable } from 'vue-draggable-plus';
+import cards from './cards';
+import axios from 'axios'
+
+export default defineComponent({
+	name: 'App',
+	components: {
+		VueDraggable,
+	},
+	setup() {
+		console.log();
+		const statuses = ref(cards);
+
+		const drag = () => {
+			// console.log(event.item.dataset.card_id)
+		}
+
+		const drop = (event) => {
+			let status_id = event.to.dataset.status_id;
+			let card_id = event.item.dataset.card_id;
+
+			console.log({'status novo': status_id}, {'card': card_id} );
+		}
+
+		const busca = async () => {
+			let res = await axios.get('http://localhost:8000/api/tasks')
+			console.log(res.data)
+		}		
+
+		return {
+			statuses,
+			drag,
+			drop,
+			busca
+		};
+	},
+	mounted(){
+		this.busca()
+	}
+});
+</script>
+
+<style>
+.board {
+	width: 98%;
+	display: flex;
+	flex-direction: row;
+	gap: 10px;
+	overflow-x: auto;
+	height: 90vh;
+	padding: 10px;
+}
+
+.coluna {
+	background-color: #2f2f2f;
+	padding: 0px 10px;
+	min-width: 250px;
+	border-radius: 4px;
+	box-shadow: 1px 1px 5px black;
+	color: white;
+	overflow-y: auto;
+	height: 90vh;
+}
+
+.cardContainer {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	/* padding: 5px; */
+}
+
+.cardContainerBorder {
+	border: 2px dashed #9b95a5;
+	background-color: transparent;
+	padding: 5px;
+}
+
+.card {
+	background-color: #f4f4f4;
+	/* border: 1px solid #ddd; */
+	padding: 10px;
+	border-radius: 4px;
+	cursor: grab;
+	height: 40px;
+	/* min-width: 400px; */
+}
+
+.ghost {
+	opacity: 0;
+	background-color: #f4f4f4;
+}
+</style>

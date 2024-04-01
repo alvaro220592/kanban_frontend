@@ -1,16 +1,16 @@
 <template>
     <v-app>
         <v-card class="board pa-4 h-screen d-flex flex-row overflow-x-auto gap-2 w-100 rounded-0" color="grey-darken-4">
-            <v-card v-for="status in statuses" :key="status.id" class="coluna pa-4" color="grey-darken-3">
+            <v-card v-for="status in statuses" :key="status.id" class="overflow-y-auto coluna pa-2" color="grey-darken-3">
                 <h4 class="p-2 d-flex justify-content-between">
                     {{ status.title }}
-                    <i class="bi bi-plus-circle" @mouseover="iconOver" @mouseleave="iconLeave" style="cursor: pointer" @click="openModal"></i>
+                    <i :data-status_id="status.id" class="bi bi-plus-circle" @mouseover="iconOver" @mouseleave="iconLeave" style="cursor: pointer" @click="openNovaTarefaModal"></i>
                 </h4>
 
                 <VueDraggable v-model="status.tasks" class="cardContainer d-flex flex-column gap-2" group="statuses"
                     animation="250" ghostClass="ghost" :data-status_id="status.id" @start="drag" @dragover="handleDragOver" @dragleave="handleDragLeave" @end="drop">
                     
-                    <v-card v-for="task in status.tasks" :key="task.id" class="card pa-2"
+                    <v-card v-for="task in status.tasks" :key="task.id" class="card h-10 cursor-grab pa-2"
                         :class="corClara(task.background_color) ? 'text-dark' : 'text-light'" :data-task_id="task.id"
                         :data-order="task.order" :style="{ backgroundColor: task.background_color }">
                         <v-card class="d-flex justify-content-between elevation-0" color="transparent">
@@ -20,12 +20,11 @@
                     </v-card>
                 </VueDraggable>
             </v-card>
-            <v-card id="a"></v-card>
         </v-card>
     </v-app>
 
 	<!-- modal -->
-    <v-dialog v-model="modalOpen" max-width="500px">
+    <v-dialog v-model="modalNovaTarefaOpen" max-width="500px">
 		<v-card color="grey-darken-3">
 			<v-card-title>
 				<span class="headline">Nova tarefa</span>
@@ -33,53 +32,63 @@
 			<v-card-text>
 
 				<v-row>
-					<v-col
-						cols="12"
-						md="4"
-					>
-						<v-text-field
-							v-model="taskTitle"
-							:counter="10"
-							label="Título"
-							hide-details
-							required
-						></v-text-field>
+					<v-col cols="12" md="12">
+						<v-text-field v-model="taskTitle" :counter="10" label="Título" hide-details required></v-text-field>
 					</v-col>
 
-					<v-col class="cols-12 md-4">
+					<v-col class="cols-12 md-12">
 						<v-textarea label="Descrição" v-model="taskDescription"></v-textarea>
 					</v-col>
 				</v-row>
 
-				<v-btn color="blue darken-1" @click="openCoresModal">Selecionar cor</v-btn>
+				<!-- DROPDOWN de seleção de cores -->
+				<div>
+					<v-menu open-on-hover transition="slide-y-transition">
+						<template v-slot:activator="{ props }">
+							<v-btn color="primary" v-bind="props">Cor da tarefa</v-btn>
+						</template>
+
+						<v-card color="grey-darken-3">
+							<div v-for="(cor, index_cores) in cores" :key="index_cores">
+								<div class="d-flex justify-center align-center">
+									<div class="rounded-circle" v-for="(hexa, index_hexas) in cor.hexas" :key="index_hexas">
+										<v-btn
+											icon="mdi-circle"
+											variant="text"
+											:style="{color: hexa}"
+											:data-cor_hexadecimal="hexa"
+											@click="selecionarCorTarefa(hexa)"
+										></v-btn>
+									</div>
+								</div>
+							</div>
+						</v-card>
+					</v-menu>
+
+					<v-icon v-if="corTarefaSelecionada != ''" icon="mdi-circle" :style="{color: corTarefaSelecionada}" end></v-icon>
+					<span v-else class="ml-3">Nenhuma selecionada</span>
+				</div>
 			</v-card-text>
 
 			<v-card-actions class="justify-space-between">
-				<v-btn color="blue darken-1" text @click="closeModal">Fechar</v-btn>
-				<v-btn color="blue darken-1" text @click="closeModal">Salvar</v-btn>
+				<v-btn color="blue darken-1" text @click="closeNovaTarefaModal">Fechar</v-btn>
+				<v-btn color="blue darken-1" text @click="criarTarefa">Salvar</v-btn>
 			</v-card-actions>
 		</v-card>
     </v-dialog>
 
-	<!-- modal cores -->
-	<v-dialog v-model="modalCoresOpen" max-width="250px">
-		<v-card color="grey-darken-3">
-			<v-card-text>
-				<div v-for="(cor, index_cores) in cores" :key="index_cores">
-					<div class="d-flex justify-center align-center">
-						<div class=" rounded-circle" v-for="(hexa, index_hexas) in cor.hexas" :key="index_hexas">
-							<v-btn
-								icon="mdi-circle"
-								variant="text"
-								:style="{color: hexa}"
-								@click="closeCoresModal"
-							></v-btn>
-						</div>
-					</div>
-				</div>
-			</v-card-text>
-		</v-card>
-    </v-dialog>
+	<!-- TOAST -->
+	<div>
+		<v-snackbar timeout="5000" color="green" elevation="24" location="top right" v-model="toast">
+			<div class="d-flex flex-column justify-space-between">
+				<span :style="{fontSize: '20px', fontStyle: 'italic'}">
+					{{ toastMessage }}
+					Salvo com sucesso!
+				</span>
+				<v-progress-linear v-if="toast" indeterminate absolute color="deep-orange-darken-2"></v-progress-linear>
+			</div>
+		</v-snackbar>
+	</div>
     
 </template>
 
@@ -96,10 +105,13 @@ export default defineComponent({
 	setup() {
 		const statuses = ref([])
 		const taskShow = ref()
-		const modalOpen = ref(false);
-		const modalCoresOpen = ref(false);
+		const modalNovaTarefaOpen = ref(false);
 		const taskTitle = ref('')
 		const taskDescription = ref('')
+		const corTarefaSelecionada = ref('')
+		const novaTarefaStatusId = ref(null)
+		const toast = ref(true)
+		const toastMessage = ref('')
 
 		const cores = [
 			{
@@ -128,21 +140,19 @@ export default defineComponent({
 			}			
 		];
 
-		const openModal = () => {
-			modalOpen.value = true;
+		const openNovaTarefaModal = (event) => {
+			novaTarefaStatusId.value = event.target.dataset.status_id
+			modalNovaTarefaOpen.value = true;
 		};
 
-		const closeModal = () => {
-			modalOpen.value = false;
+		const closeNovaTarefaModal = () => {
+			novaTarefaStatusId.value = null
+			modalNovaTarefaOpen.value = false;
 		};
 
-		const openCoresModal = () => {
-			modalCoresOpen.value = true;
-		};
-
-		const closeCoresModal = () => {
-			modalCoresOpen.value = false;
-		};
+		const selecionarCorTarefa = (hexa) => {
+			corTarefaSelecionada.value = hexa;
+		}
 
 		const iconOver = (event) => {
 			event.target.classList.remove('bi-plus-circle')
@@ -221,6 +231,22 @@ export default defineComponent({
 			statuses.value = res.data
 		}
 
+		const criarTarefa = async () => {
+			let status_id = novaTarefaStatusId.value
+			
+			let req  = await axios.post('http://localhost:8000/api/task', {
+				task_status_id: status_id,
+				title: taskTitle.value,
+				description: taskDescription.value,
+				background_color: corTarefaSelecionada.value
+			})
+
+			toast.value = true
+			toastMessage.value = req.data.message
+			closeNovaTarefaModal()
+			busca()
+		}
+
 		// Função que usa a fórmula "YIQ" que serve pra detectar se a cor é clara ou escura
 		const corClara = (hexColor) => {
 			// Remover o '#' do valor hexadecimal
@@ -265,15 +291,17 @@ export default defineComponent({
 			handleDragLeave,
 			iconOver,
 			iconLeave,
-			modalOpen,
-			openModal,
-			closeModal,
+			modalNovaTarefaOpen,
+			openNovaTarefaModal,
+			closeNovaTarefaModal,
 			cores,
-			modalCoresOpen,
-			openCoresModal,
-			closeCoresModal,
 			taskTitle,
-			taskDescription
+			taskDescription,
+			corTarefaSelecionada,
+			selecionarCorTarefa,
+			criarTarefa,
+			toast,
+			toastMessage
 		};
 	},
 });
@@ -292,21 +320,9 @@ export default defineComponent({
 }
 
 .coluna {
-	background-color: #2f2f2f;
-	padding: 0px 10px;
 	min-width: 250px;
 	max-width: 250px;
-	border-radius: 4px;
-	box-shadow: 1px 1px 5px black;
-	color: white;
-	overflow-y: auto;
 	height: 90vh;
-}
-
-.cardContainer {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
 }
 
 .cardContainerBorder {
@@ -316,12 +332,7 @@ export default defineComponent({
 }
 
 .card {
-	background-color: #f4f4f4;
-	/* border: 1px solid #ddd; */
-	padding: 10px;
-	border-radius: 4px;
-	cursor: grab;
-	min-height: 40px;
+	min-height: 60px;
 	height: auto;
 	max-width: 250px;
 }

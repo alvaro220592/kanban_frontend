@@ -1,13 +1,9 @@
 <template>
     <v-app>
         <v-card class="board pa-4 h-screen d-flex flex-row overflow-x-auto gap-2 w-100 rounded-0" color="grey-darken-4">
-            <v-card v-for="status in statuses" :key="status.id" class="d-flex flex-column coluna pa-2" color="grey-darken-3" style="border-top: 3px orange solid">
-				<div>
-					<h4 class="p-2 d-flex justify-content-between">
-						{{ status.title }}
-						<i :data-status_id="status.id" class="bi bi-plus-circle" @mouseover="iconOver" @mouseleave="iconLeave" style="cursor: pointer" @click="openNovaTarefaModal"></i>
-					</h4>
-				</div>
+			<v-card v-for="status in statuses" :key="status.id" class="d-flex flex-column coluna pa-2" color="grey-darken-3" style="border-top: 3px orange solid">
+				
+				<StatusTitle :statusId="status.id" :statusTitle="status.title" :abrirModalNovaTarefa="openNovaTarefaModal"></StatusTitle>
 				
 				<div class="overflow-y-auto">
 					<VueDraggable v-model="status.tasks" class="cardContainer d-flex flex-column gap-2" group="statuses"
@@ -93,13 +89,15 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import { VueDraggable } from 'vue-draggable-plus';
 import ToastPopup from './ToastPopup.vue'
+import StatusTitle from './StatusTitle.vue';
 
 import axios from 'axios'
 export default defineComponent({
 	name: 'ConteudoGeral',
 	components: {
 		VueDraggable,
-		ToastPopup
+		ToastPopup,
+		StatusTitle
 	},
 	setup() {
 		const statuses = ref([])
@@ -153,15 +151,15 @@ export default defineComponent({
 			corTarefaSelecionada.value = hexa;
 		}
 
-		const iconOver = (event) => {
-			event.target.classList.remove('bi-plus-circle')
-			event.target.classList.add('bi-plus-circle-fill')
-		}
+		// const iconOver = (event) => {
+		// 	event.target.classList.remove('bi-plus-circle')
+		// 	event.target.classList.add('bi-plus-circle-fill')
+		// }
 
-		const iconLeave = (event) => {
-			event.target.classList.remove('bi-plus-circle-fill')
-			event.target.classList.add('bi-plus-circle')
-		}
+		// const iconLeave = (event) => {
+		// 	event.target.classList.remove('bi-plus-circle-fill')
+		// 	event.target.classList.add('bi-plus-circle')
+		// }
 
 		const drag = () => {
 			// console.log(event.item.dataset.task_id)
@@ -288,8 +286,6 @@ export default defineComponent({
 			opcoes,
 			handleDragOver,
 			handleDragLeave,
-			iconOver,
-			iconLeave,
 			modalNovaTarefaOpen,
 			openNovaTarefaModal,
 			closeNovaTarefaModal,

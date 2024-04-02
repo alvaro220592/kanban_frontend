@@ -10,14 +10,17 @@
 </template>
 
 <script>
+import { defineComponent } from 'vue';
 
-export default {
+export default defineComponent ({
+    name: 'ToastPopup',
+    
     props: {
         toastMessage: String,
         ativo: Boolean,
         cor: String
     }
-}
+})
 </script>
 
 <style lang="scss" scoped>

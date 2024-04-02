@@ -1,24 +1,28 @@
 <template>
     <v-app>
         <v-card class="board pa-4 h-screen d-flex flex-row overflow-x-auto gap-2 w-100 rounded-0" color="grey-darken-4">
-            <v-card v-for="status in statuses" :key="status.id" class="overflow-y-auto coluna pa-2" color="grey-darken-3">
-                <h4 class="p-2 d-flex justify-content-between">
-                    {{ status.title }}
-                    <i :data-status_id="status.id" class="bi bi-plus-circle" @mouseover="iconOver" @mouseleave="iconLeave" style="cursor: pointer" @click="openNovaTarefaModal"></i>
-                </h4>
-
-                <VueDraggable v-model="status.tasks" class="cardContainer d-flex flex-column gap-2" group="statuses"
-                    animation="250" ghostClass="ghost" :data-status_id="status.id" @start="drag" @dragover="handleDragOver" @dragleave="handleDragLeave" @end="drop">
-                    
-                    <v-card v-for="task in status.tasks" :key="task.id" class="card h-10 cursor-grab pa-2"
-                        :class="corClara(task.background_color) ? 'text-dark' : 'text-light'" :data-task_id="task.id"
-                        :data-order="task.order" :style="{ backgroundColor: task.background_color }">
-                        <v-card class="d-flex justify-content-between elevation-0" color="transparent">
-                            <span>{{ task.title }} - ordem: {{ task.order }}</span>
-                            <i class="bi bi-three-dots opcoes" @click="opcoes"></i>
-                        </v-card>
-                    </v-card>
-                </VueDraggable>
+            <v-card v-for="status in statuses" :key="status.id" class="d-flex flex-column coluna pa-2" color="grey-darken-3" style="border-top: 3px orange solid">
+				<div>
+					<h4 class="p-2 d-flex justify-content-between">
+						{{ status.title }}
+						<i :data-status_id="status.id" class="bi bi-plus-circle" @mouseover="iconOver" @mouseleave="iconLeave" style="cursor: pointer" @click="openNovaTarefaModal"></i>
+					</h4>
+				</div>
+				
+				<div class="overflow-y-auto">
+					<VueDraggable v-model="status.tasks" class="cardContainer d-flex flex-column gap-2" group="statuses"
+						animation="250" ghostClass="ghost" :data-status_id="status.id" @start="drag" @dragover="handleDragOver" @dragleave="handleDragLeave" @end="drop">
+						
+						<v-card v-for="task in status.tasks" :key="task.id" class="card h-10 cursor-grab pa-2"
+							:class="corClara(task.background_color) ? 'text-dark' : 'text-light'" :data-task_id="task.id"
+							:data-order="task.order" :style="{ backgroundColor: task.background_color }">
+							<v-card class="d-flex justify-content-between elevation-0" color="transparent">
+								<span>{{ task.title }} - ordem: {{ task.order }}</span>
+								<i class="bi bi-three-dots opcoes" @click="opcoes"></i>
+							</v-card>
+						</v-card>
+					</VueDraggable>
+				</div>
             </v-card>
         </v-card>
     </v-app>
@@ -30,7 +34,6 @@
 				<span class="headline">Nova tarefa</span>
 			</v-card-title>
 			<v-card-text>
-
 				<v-row>
 					<v-col cols="12" md="12">
 						<v-text-field v-model="taskTitle" :counter="10" label="Título" hide-details required></v-text-field>
@@ -43,12 +46,13 @@
 
 				<!-- DROPDOWN de seleção de cores -->
 				<div>
-					<v-menu open-on-hover transition="slide-y-transition">
+					<v-menu open-on-click transition="slide-y-transition">
 						<template v-slot:activator="{ props }">
 							<v-btn color="primary" v-bind="props">Cor da tarefa</v-btn>
 						</template>
 
-						<v-card color="grey-darken-3">
+						<v-card class="py-2 px-6" color="grey-darken-3">
+							<div class="text-center text-button">Selecione</div>
 							<div v-for="(cor, index_cores) in cores" :key="index_cores">
 								<div class="d-flex justify-center align-center">
 									<div class="rounded-circle" v-for="(hexa, index_hexas) in cor.hexas" :key="index_hexas">
@@ -77,30 +81,25 @@
 		</v-card>
     </v-dialog>
 
-	<!-- TOAST -->
-	<div>
-		<v-snackbar timeout="5000" color="green" elevation="24" location="top right" v-model="toast">
-			<div class="d-flex flex-column justify-space-between">
-				<span :style="{fontSize: '20px', fontStyle: 'italic'}">
-					{{ toastMessage }}
-					Salvo com sucesso!
-				</span>
-				<v-progress-linear v-if="toast" indeterminate absolute color="deep-orange-darken-2"></v-progress-linear>
-			</div>
-		</v-snackbar>
-	</div>
-    
+	<!-- toastAtivo -->
+	<ToastPopup 
+		:toastMessage="'toastMessage'"
+		cor="green"
+		v-model="toastAtivo"
+	></ToastPopup>
 </template>
 
 <script>
 import { defineComponent, ref, onMounted } from 'vue';
 import { VueDraggable } from 'vue-draggable-plus';
+import ToastPopup from './ToastPopup.vue'
 
 import axios from 'axios'
 export default defineComponent({
 	name: 'ConteudoGeral',
 	components: {
 		VueDraggable,
+		ToastPopup
 	},
 	setup() {
 		const statuses = ref([])
@@ -110,7 +109,7 @@ export default defineComponent({
 		const taskDescription = ref('')
 		const corTarefaSelecionada = ref('')
 		const novaTarefaStatusId = ref(null)
-		const toast = ref(true)
+		const toastAtivo = ref(false)
 		const toastMessage = ref('')
 
 		const cores = [
@@ -241,7 +240,7 @@ export default defineComponent({
 				background_color: corTarefaSelecionada.value
 			})
 
-			toast.value = true
+			toastAtivo.value = true
 			toastMessage.value = req.data.message
 			closeNovaTarefaModal()
 			busca()
@@ -300,7 +299,7 @@ export default defineComponent({
 			corTarefaSelecionada,
 			selecionarCorTarefa,
 			criarTarefa,
-			toast,
+			toastAtivo,
 			toastMessage
 		};
 	},

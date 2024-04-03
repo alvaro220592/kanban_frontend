@@ -1,8 +1,9 @@
 <template>
     <v-app>
-        <v-card class="board pa-4 h-screen d-flex flex-row overflow-x-auto gap-2 w-100 rounded-0" color="grey-darken-4">
-			<v-card v-for="status in statuses" :key="status.id" class="d-flex flex-column coluna" color="grey-darken-3" style="border-top: 3px orange solid">
-				
+		<KanbanBoard>
+			<!-- <v-card v-for="status in statuses" :key="status.id" class="d-flex flex-column coluna" color="grey-darken-3" style="border-top: 3px orange solid"> -->
+			<StatusColuna v-for="status in statuses" :key="status.id">
+
 				<TituloStatus :statusId="status.id" :statusTitle="status.title" :abrirModalNovaTarefa="openNovaTarefaModal"></TituloStatus>
 				
 				<div class="overflow-y-auto px-2">
@@ -17,63 +18,17 @@
 						></CardTarefa>
 					</CardContainer>
 				</div>
-            </v-card>
-        </v-card>
+			</StatusColuna>
+            <!-- </v-card> -->
+        </KanbanBoard>
     </v-app>
 
 	<!-- modal -->
-    <v-dialog v-model="modalNovaTarefaOpen" max-width="500px" persistent>
-		<v-card color="grey-darken-3">
-			<v-card-title>
-				<span class="headline">Nova tarefa</span>
-			</v-card-title>
-			<v-card-text>
-				<v-row>
-					<v-col cols="12" md="12">
-						<v-text-field v-model="taskTitle" :counter="10" label="Título" hide-details required></v-text-field>
-					</v-col>
-
-					<v-col class="cols-12 md-12">
-						<v-textarea label="Descrição" v-model="taskDescription"></v-textarea>
-					</v-col>
-				</v-row>
-
-				<!-- DROPDOWN de seleção de cores -->
-				<div>
-					<v-menu open-on-click transition="slide-y-transition">
-						<template v-slot:activator="{ props }">
-							<v-btn color="primary" v-bind="props">Cor da tarefa</v-btn>
-						</template>
-
-						<v-card class="py-2 px-6" color="grey-darken-3">
-							<div class="text-center text-button">Selecione</div>
-							<div v-for="(cor, index_cores) in cores" :key="index_cores">
-								<div class="d-flex justify-center align-center">
-									<div class="rounded-circle" v-for="(hexa, index_hexas) in cor.hexas" :key="index_hexas">
-										<v-btn
-											icon="mdi-circle"
-											variant="text"
-											:style="{color: hexa}"
-											:data-cor_hexadecimal="hexa"
-											@click="selecionarCorTarefa(hexa)"
-										></v-btn>
-									</div>
-								</div>
-							</div>
-						</v-card>
-					</v-menu>
-
-					<v-icon v-if="corTarefaSelecionada != ''" icon="mdi-circle" :style="{color: corTarefaSelecionada}" end></v-icon>
-					<span v-else class="ml-3">Nenhuma selecionada</span>
-				</div>
-			</v-card-text>
-
-			<v-card-actions class="justify-space-between">
-				<v-btn color="blue darken-1" text @click="closeNovaTarefaModal">Fechar</v-btn>
-				<v-btn color="blue darken-1" text @click="criarTarefa">Salvar</v-btn>
-			</v-card-actions>
-		</v-card>
-    </v-dialog>
+	<TarefaModal
+		v-model="modalTarefaOpen"
+		@emitTarefaSalva="criarTarefa"
+		@emitFecharTarefaModal="closeTarefaModal"
+	></TarefaModal>
 
 	<!-- toastAtivo -->
 	<ToastPopup 
@@ -89,6 +44,9 @@ import ToastPopup from './ToastPopup.vue'
 import TituloStatus from './TituloStatus.vue';
 import CardTarefa from './CardTarefa.vue';
 import CardContainer from './CardContainer.vue';
+import StatusColuna from './StatusColuna.vue'
+import KanbanBoard from './KanbanBoard.vue';
+import TarefaModal from './Modals/TarefaModal.vue'
 
 import axios from 'axios'
 export default defineComponent({
@@ -97,114 +55,48 @@ export default defineComponent({
 		ToastPopup,
 		TituloStatus,
 		CardTarefa,
-		CardContainer
+		CardContainer,
+		StatusColuna,
+		KanbanBoard,
+		TarefaModal
 	},
 	setup() {
 		const statuses = ref([])
-		const taskShow = ref()
-		const modalNovaTarefaOpen = ref(false);
-		const taskTitle = ref('')
-		const taskDescription = ref('')
-		const corTarefaSelecionada = ref('')
+		const modalTarefaOpen = ref(false);
 		const novaTarefaStatusId = ref(null)
 		const toastAtivo = ref(false)
 		const toastMessage = ref('')
 
-		const cores = [
-			{
-				nome: 'vermelho',
-				hexas: ['#EF9A9A','#E57373','#EF5350','#F44336']
-			},
-			{
-				nome: 'roxo',
-				hexas: ['#CE93D8', '#BA68C8', '#AB47BC', '#9C27B0']
-			},
-			{
-				nome: 'azul',
-				hexas: ['#90CAF9', '#64B5F6', '#42A5F5', '#2196F3']
-			},
-			{
-				nome: 'verde',
-				hexas: ['#A5D6A7', '#81C784', '#66BB6A', '#4CAF50']
-			},
-			{
-				nome: 'amarelo',
-				hexas: ['#FFF176', '#FFEE58', '#FFEB3B', '#FDD835']
-			},
-			{
-				nome: 'laranja',
-				hexas: ['#FFCC80', '#FFB74D', '#FFA726', '#FF9800']
-			}			
-		];
-
 		const openNovaTarefaModal = (event) => {
 			novaTarefaStatusId.value = event.target.dataset.status_id
-			modalNovaTarefaOpen.value = true;
+			modalTarefaOpen.value = true;
 		};
 
-		const closeNovaTarefaModal = () => {
-			novaTarefaStatusId.value = null
-			modalNovaTarefaOpen.value = false;
-			taskTitle.value = ''
-			taskDescription.value = ''
-			corTarefaSelecionada.value = ''
-		};
+		const criarTarefa = async (dadosEmit) => {
+			let status_id = novaTarefaStatusId.value
+			
+			let req  = await axios.post('http://localhost:8000/api/task', {
+				task_status_id: status_id,
+				title: dadosEmit.titulo,
+				description: dadosEmit.descricao,
+				background_color: dadosEmit.corSelecionada
+			})
 
-		const selecionarCorTarefa = (hexa) => {
-			corTarefaSelecionada.value = hexa;
+			toastAtivo.value = true
+			toastMessage.value = req.data.message
+			closeTarefaModal()
+			busca()
 		}
+
+		const closeTarefaModal = () => {
+			novaTarefaStatusId.value = null
+			modalTarefaOpen.value = false;
+		};
 
 		const busca = async () => {
 			let res = await axios.get('http://localhost:8000/api/statuses')
 			statuses.value = res.data
 		}
-
-		const criarTarefa = async () => {
-			let status_id = novaTarefaStatusId.value
-			
-			let req  = await axios.post('http://localhost:8000/api/task', {
-				task_status_id: status_id,
-				title: taskTitle.value,
-				description: taskDescription.value,
-				background_color: corTarefaSelecionada.value
-			})
-
-			toastAtivo.value = true
-			toastMessage.value = req.data.message
-			closeNovaTarefaModal()
-			busca()
-		}
-
-		// Função que usa a fórmula "YIQ" que serve pra detectar se a cor é clara ou escura
-		const corClara = (hexColor) => {
-			// Remover o '#' do valor hexadecimal
-			hexColor = hexColor.replace('#', '');
-
-			// Converter o valor hexadecimal para RGB
-			const r = parseInt(hexColor.substr(0, 2), 16);
-			const g = parseInt(hexColor.substr(2, 2), 16);
-			const b = parseInt(hexColor.substr(4, 2), 16);
-
-			// Calcular a luminosidade relativa (Y) usando a fórmula YIQ
-			const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-
-			// Definir um limiar para decidir se a cor é clara ou escura
-			const threshold = 128;
-
-			// Comparar a luminosidade relativa com o limiar e retornar verdadeiro se for maior (cor clara)
-			return yiq >= threshold;
-		}
-
-		
-		// abre um modal da tarefa
-		const opcoes = async (event) => {
-			let card = event.target.closest('.card');
-			let task_id = card.dataset.task_id
-			let dados = await axios.get(`http://localhost:8000/api/task/${task_id}`)
-			taskShow.value = dados.data
-			document.getElementById('a').innerText = taskShow.value.description
-		}
-
 
 		onMounted(() => {
 			busca();
@@ -212,16 +104,9 @@ export default defineComponent({
 
 		return {
 			statuses,
-			corClara,
-			opcoes,
-			modalNovaTarefaOpen,
+			modalTarefaOpen,
 			openNovaTarefaModal,
-			closeNovaTarefaModal,
-			cores,
-			taskTitle,
-			taskDescription,
-			corTarefaSelecionada,
-			selecionarCorTarefa,
+			closeTarefaModal,
 			criarTarefa,
 			toastAtivo,
 			toastMessage
@@ -232,24 +117,6 @@ export default defineComponent({
 
 <style scoped>
 
-.board {
-	width: 98%;
-	display: flex;
-	flex-direction: row;
-	gap: 10px;
-	overflow-x: auto;
-	height: 95vh;
-	padding: 10px;
-}
 
-.coluna {
-	min-width: 250px;
-	max-width: 250px;
-	height: 90vh;
-}
-
-.opcoes {
-	cursor: pointer;
-}
 
 </style>

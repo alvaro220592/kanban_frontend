@@ -1,7 +1,12 @@
 <template>
     <h4 class="py-2 px-3 d-flex justify-content-between">
         {{ statusTitle }}
-        <i :data-status_id="statusId" class="bi bi-plus-circle-fill botao"  style="cursor: pointer" @click="abrirModalNovaTarefa"></i>
+
+        <v-tooltip text="Nova tarefa" location="end">
+            <template v-slot:activator="{ props }">
+                <i :data-status_id="statusId" class="bi bi-plus-circle-fill botao" v-bind="props" style="cursor: pointer" @click="abrirModalNovaTarefa"></i>
+            </template>
+        </v-tooltip>
     </h4>
 </template>
 

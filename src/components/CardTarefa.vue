@@ -5,10 +5,10 @@
             :class="corClara(bgColor) ? 'text-dark' : 'text-light'"            
             :style="{
                 backgroundColor: bgColor,
-                borderTop: `3px solid ${tornarCorMaisIntensa(bgColor)}`,
-                borderRight: `3px solid ${tornarCorMaisIntensa(bgColor)}`,
-                borderLeft: `3px solid ${tornarCorMaisIntensa(bgColor)}`,
-                borderBottom: `3px solid ${tornarCorMaisIntensa(bgColor)}`
+                borderTop: `1.5px solid ${tornarCorMaisIntensa(bgColor)}`,
+                borderRight: `1.5px solid ${tornarCorMaisIntensa(bgColor)}`,
+                borderLeft: `1.5px solid ${tornarCorMaisIntensa(bgColor)}`,
+                borderBottom: `1.5px solid ${tornarCorMaisIntensa(bgColor)}`
             }"
         >
             <v-card class="elevation-0" color="transparent">
@@ -27,7 +27,9 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
+import axios from 'axios'
+
 export default defineComponent ({
     name: 'CardTarefa',
 
@@ -38,6 +40,8 @@ export default defineComponent ({
     },
 
     setup () {
+        const taskShow = ref();
+
         // Função que usa a fórmula "YIQ" que serve pra detectar se a cor é clara ou escura
 		const corClara = (hexColor) => {
 			// Remover o '#' do valor hexadecimal
@@ -80,14 +84,25 @@ export default defineComponent ({
 		}
 
 
-        const opcoes = () => {
-            console.log('opções');
-        }
+        // const opcoes = () => {
+        //     console.log('opções');
+        // }
+
+        // abre um modal da tarefa
+		const opcoes = async (event) => {
+            let card = event.target.closest('.card');
+			let task_id = card.dataset.task_id
+			let dados = await axios.get(`http://localhost:8000/api/task/${task_id}`)
+			taskShow.value = dados.data
+            console.log(taskShow.value);
+			// document.getElementById('a').innerText = taskShow.value.description
+		}
 
         return {
             opcoes,
             corClara,
-            tornarCorMaisIntensa
+            tornarCorMaisIntensa,
+            taskShow
         }
     }
 })
@@ -99,5 +114,9 @@ export default defineComponent ({
 	min-height: 60px;
 	height: auto;
 	max-width: 250px;
+}
+
+.opcoes {
+	cursor: pointer;
 }
 </style>

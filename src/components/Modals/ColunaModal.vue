@@ -34,14 +34,18 @@ export default defineComponent({
 
         // const titulo = ref('')
 		const titulo = ref(props.valorInicialTitulo)
+		const modoEdicao = ref(false)
 
+		// Se tiver um valor no campo, algumas coisas são definidas
 		watch(() => props.valorInicialTitulo, (novoValor) => {
+			modoEdicao.value = true
 			titulo.value = novoValor;
 		});
 
         const salvarStatus = () => {
             emit('emitSalvarStatus', {
-                titulo: titulo.value
+                titulo: titulo.value,
+				modoEdicao: modoEdicao.value
             })
 			fecharColunaModal()
         }
@@ -54,7 +58,8 @@ export default defineComponent({
         return {
             titulo,
             salvarStatus,
-            fecharColunaModal
+            fecharColunaModal,
+			modoEdicao
         }
     }
 })

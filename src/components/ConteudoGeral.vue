@@ -20,7 +20,7 @@
 
 					<v-tooltip text="Nova coluna">
 						<template v-slot:activator="{ props }">
-							<h1><i v-bind="props" class="bi bi-plus-circle cursor-pointer botao"></i></h1>
+							<h1><i v-bind="props" class="bi bi-plus-circle cursor-pointer botao" @click="abrirColunaModal"></i></h1>
 						</template>
 					</v-tooltip>
 
@@ -83,6 +83,7 @@ export default defineComponent({
 		const modalColunaOpen = ref(false);
 		const valorInicialTitulo = ref('');
 		const Tarefa2ModalOpen = ref(false)
+		const statusId = ref(null)
 
 		// const openTarefaModal = (event) => {
 		// 	novaTarefaStatusId.value = event.target.dataset.status_id
@@ -120,9 +121,22 @@ export default defineComponent({
 		}
 
 		const salvarStatus = async (dadosEmit) => {
-			let req = await axios.post('http://localhost:8000/api/status/store', {
+			
+			let url = 'http://localhost:8000/api/status/store'
+			let opcoes = {
 				title: dadosEmit.titulo
-			})
+			}
+
+			if (dadosEmit.modoEdicao == true) {
+				url = `http://localhost:8000/api/status/update/${statusId.value}`
+				opcoes = {
+					title: dadosEmit.titulo
+				}
+			}
+
+			let req = await axios.post(url, opcoes)
+
+			console.log(req.data);
 
 			toastAtivo.value = true
 			toastMessage.value = req.data.message
@@ -137,6 +151,7 @@ export default defineComponent({
 		const editStatus = (dadosEmit) => {
 			console.log(dadosEmit)
 			valorInicialTitulo.value = dadosEmit.title
+			statusId.value = dadosEmit.statusId
 			abrirColunaModal()
 		}
 
@@ -164,7 +179,8 @@ export default defineComponent({
 			editStatus,
 
 			Tarefa2ModalOpen,
-			valorInicialTitulo
+			valorInicialTitulo,
+			statusId
 		};
 	},
 });

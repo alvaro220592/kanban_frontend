@@ -98,7 +98,8 @@ export default defineComponent ({
 
 <style>
     .cardContainerBorder {
-        border: 3px dashed #9b95a5;
+        /* border: 2px dashed #9b95a5; */
+		border: 2px dashed #ffc787;
         background-color: transparent;
         padding: 2px 2px;
     }

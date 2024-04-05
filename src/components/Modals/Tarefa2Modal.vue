@@ -1,12 +1,9 @@
 <template>
-	<v-app>
-		<v-dialog max-width="500px" persistent>
-			<v-card color="grey-darken-4">
-				<v-card-title>
-					<span class="headline">Nova tarefa</span>
-				</v-card-title>
-				<v-card-text>
-					<v-row>
+    <v-dialog max-width="500" persistent>
+        <!-- <template v-slot:default="{ isActive }"> -->
+            <v-card title="Dialog" color="grey-darken-4">
+                <v-card-text>
+                    <v-row>
 						<v-col cols="12" md="12">
 							<v-text-field v-model="titulo" :counter="10" label="Título" hide-details required></v-text-field>
 						</v-col>
@@ -16,7 +13,7 @@
 						</v-col>
 					</v-row>
 
-					<!-- DROPDOWN de seleção de cores -->
+                    <!-- DROPDOWN de seleção de cores -->
 					<div>
 						<v-menu open-on-click transition="slide-y-transition">
 							<template v-slot:activator="{ props }">
@@ -45,23 +42,28 @@
 						<v-icon v-if="corTarefaSelecionada != ''" icon="mdi-circle" :style="{color: corTarefaSelecionada}" end></v-icon>
 						<span v-else class="ml-3">Nenhuma selecionada</span>
 					</div>
-				</v-card-text>
+                </v-card-text>
+
+                <!-- <v-card-actions>
+                    <v-spacer></v-spacer>
+
+                    <v-btn text="Close Dialog" @click="isActive.value = false"></v-btn>
+                </v-card-actions> -->
+
 
 				<v-card-actions class="justify-space-between">
 					<v-btn color="blue darken-1" text @click="fecharTarefaModal">Fechar</v-btn>
 					<v-btn color="blue darken-1" text @click="salvarTarefa">Salvar</v-btn>
 				</v-card-actions>
-			</v-card>
-		</v-dialog>
-	</v-app>
+            </v-card>
+        <!-- </template> -->
+    </v-dialog>
 </template>
 
 <script>
-
 import { ref } from 'vue'
 
 export default {
-
     setup (props, { emit }) {
 		const titulo = ref('')
 		const descricao = ref('')
@@ -95,7 +97,7 @@ export default {
 		];
 
 		const salvarTarefa = () => {
-			emit('emitTarefaSalva', {
+			emit('emitSalvarTarefa', {
 				titulo: titulo.value,
 				descricao: descricao.value,
 				corSelecionada: corTarefaSelecionada.value
@@ -127,6 +129,4 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

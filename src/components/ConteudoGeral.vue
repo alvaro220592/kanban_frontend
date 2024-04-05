@@ -1,41 +1,50 @@
 <template>
-    <v-app>
-		<KanbanBoard>
-			<!-- <v-card v-for="status in statuses" :key="status.id" class="d-flex flex-column coluna" color="grey-darken-3" style="border-top: 3px orange solid"> -->
-			<StatusColuna v-for="status in statuses" :key="status.id">
+	<v-app>
+		<v-card class="d-block h-screen rounded-0" color="blue-darken-4">
+			<v-container>
+				<h1>Kanban</h1>
+				<KanbanBoard>
+					<StatusColuna v-for="status in statuses" :key="status.id">
 
-				<TituloStatus :statusId="status.id" :statusTitle="status.title" :abrirModalNovaTarefa="openNovaTarefaModal"></TituloStatus>
-				
-				<div class="overflow-y-auto px-2">
-					<CardContainer :data-status_id="status.id" :busca="busca" v-model="status.tasks">
-						<CardTarefa 
-							v-for="task in status.tasks"
-							:key="task.id"
-							:data-task_id="task.id"
-							:taskTitle="task.title"
-							:taskOrder="task.order"
-							:bgColor="task.background_color"
-						></CardTarefa>
-					</CardContainer>
-				</div>
-			</StatusColuna>
-            <!-- </v-card> -->
-        </KanbanBoard>
-    </v-app>
+						<TituloStatus :statusId="status.id" :statusTitle="status.title"
+							@emitAbrirModalTarefa="openTarefaModal" @emitEditStatus="editStatus"></TituloStatus>
+
+						<div class="overflow-y-auto px-2">
+							<CardContainer :data-status_id="status.id" :busca="busca" v-model="status.tasks">
+								<CardTarefa v-for="task in status.tasks" :key="task.id" :data-task_id="task.id"
+									:taskTitle="task.title" :taskOrder="task.order" :bgColor="task.background_color">
+								</CardTarefa>
+							</CardContainer>
+						</div>
+					</StatusColuna>
+
+					<v-tooltip text="Nova coluna">
+						<template v-slot:activator="{ props }">
+							<h1><i v-bind="props" class="bi bi-plus-circle cursor-pointer botao"></i></h1>
+						</template>
+					</v-tooltip>
+
+				</KanbanBoard>
+			</v-container>
+		</v-card>
+	</v-app>
 
 	<!-- modal -->
-	<TarefaModal
+	<!-- <TarefaModal
 		v-model="modalTarefaOpen"
-		@emitTarefaSalva="criarTarefa"
+		@emitTarefaSalva="salvarTarefa"
 		@emitFecharTarefaModal="closeTarefaModal"
-	></TarefaModal>
+	></TarefaModal> -->
+
+	<Tarefa2Modal v-model="Tarefa2ModalOpen" @emitFecharTarefaModal="closeTarefaModal" @emitSalvarTarefa="salvarTarefa">
+	</Tarefa2Modal>
+
+	<ColunaModal v-model="modalColunaOpen" @emitSalvarStatus="salvarStatus" @emitFecharColunaModal="closeColunaModal"
+		:valorInicialTitulo="valorInicialTitulo">
+	</ColunaModal>
 
 	<!-- toastAtivo -->
-	<ToastPopup 
-		:toastMessage="'toastMessage'"
-		cor="green"
-		v-model="toastAtivo"
-	></ToastPopup>
+	<ToastPopup :toastMessage="toastMessage" cor="green" v-model="toastAtivo"></ToastPopup>
 </template>
 
 <script>
@@ -46,7 +55,9 @@ import CardTarefa from './CardTarefa.vue';
 import CardContainer from './CardContainer.vue';
 import StatusColuna from './StatusColuna.vue'
 import KanbanBoard from './KanbanBoard.vue';
-import TarefaModal from './Modals/TarefaModal.vue'
+// import TarefaModal from './Modals/TarefaModal.vue'
+import Tarefa2Modal from './Modals/Tarefa2Modal.vue'
+import ColunaModal from './Modals/ColunaModal.vue'
 
 import axios from 'axios'
 export default defineComponent({
@@ -58,7 +69,10 @@ export default defineComponent({
 		CardContainer,
 		StatusColuna,
 		KanbanBoard,
-		TarefaModal
+		// TarefaModal,
+		ColunaModal,
+
+		Tarefa2Modal
 	},
 	setup() {
 		const statuses = ref([])
@@ -66,16 +80,24 @@ export default defineComponent({
 		const novaTarefaStatusId = ref(null)
 		const toastAtivo = ref(false)
 		const toastMessage = ref('')
+		const modalColunaOpen = ref(false);
+		const valorInicialTitulo = ref('');
+		const Tarefa2ModalOpen = ref(false)
 
-		const openNovaTarefaModal = (event) => {
-			novaTarefaStatusId.value = event.target.dataset.status_id
-			modalTarefaOpen.value = true;
+		// const openTarefaModal = (event) => {
+		// 	novaTarefaStatusId.value = event.target.dataset.status_id
+		// 	modalTarefaOpen.value = true;
+		// };
+
+		const openTarefaModal = (dadosEmit) => {
+			novaTarefaStatusId.value = dadosEmit.statusId
+			Tarefa2ModalOpen.value = true
 		};
 
-		const criarTarefa = async (dadosEmit) => {
+		const salvarTarefa = async (dadosEmit) => {
 			let status_id = novaTarefaStatusId.value
-			
-			let req  = await axios.post('http://localhost:8000/api/task', {
+
+			let req = await axios.post('http://localhost:8000/api/task', {
 				task_status_id: status_id,
 				title: dadosEmit.titulo,
 				description: dadosEmit.descricao,
@@ -90,8 +112,33 @@ export default defineComponent({
 
 		const closeTarefaModal = () => {
 			novaTarefaStatusId.value = null
-			modalTarefaOpen.value = false;
+			Tarefa2ModalOpen.value = false;
 		};
+
+		const abrirColunaModal = () => {
+			modalColunaOpen.value = true
+		}
+
+		const salvarStatus = async (dadosEmit) => {
+			let req = await axios.post('http://localhost:8000/api/status/store', {
+				title: dadosEmit.titulo
+			})
+
+			toastAtivo.value = true
+			toastMessage.value = req.data.message
+			closeColunaModal()
+			busca()
+		}
+
+		const closeColunaModal = () => {
+			modalColunaOpen.value = false;
+		};
+
+		const editStatus = (dadosEmit) => {
+			console.log(dadosEmit)
+			valorInicialTitulo.value = dadosEmit.title
+			abrirColunaModal()
+		}
 
 		const busca = async () => {
 			let res = await axios.get('http://localhost:8000/api/statuses')
@@ -105,18 +152,31 @@ export default defineComponent({
 		return {
 			statuses,
 			modalTarefaOpen,
-			openNovaTarefaModal,
+			openTarefaModal,
 			closeTarefaModal,
-			criarTarefa,
+			salvarTarefa,
 			toastAtivo,
-			toastMessage
+			toastMessage,
+			modalColunaOpen,
+			abrirColunaModal,
+			salvarStatus,
+			closeColunaModal,
+			editStatus,
+
+			Tarefa2ModalOpen,
+			valorInicialTitulo
 		};
 	},
 });
 </script>
 
 <style scoped>
+.botao {
+	
+}
 
-
-
+.botao:hover {
+	transition: .5s;
+	color: #e7953e;
+}
 </style>

@@ -2,7 +2,7 @@
     <div>
         <v-card
             class="card h-10 cursor-grab pa-2"
-            :class="corClara(bgColor) ? 'text-dark' : 'text-light'"            
+            :class="corClara(bgColor) ? 'text-grey-darken-4' : 'text-white'"
             :style="{
                 backgroundColor: bgColor,
                 borderTop: `1.5px solid ${tornarCorMaisIntensa(bgColor)}`,
@@ -13,13 +13,26 @@
         >
             <v-card class="elevation-0" color="transparent">
                 <div class="d-flex justify-space-between">
-                    <span>{{ taskTitle }} - ordem: {{ taskOrder }}</span>
+                    <span>{{ taskTitle }}</span>
 
-                    <v-tooltip text="Opções" location="end">
+                    <!-- <v-tooltip text="Opções" location="end">
                         <template v-slot:activator="{ props }">
-                            <i v-bind="props" class="bi bi-three-dots opcoes" @click="opcoes"></i>
+                            <button><i v-bind="props" class="bi bi-list opcoes" @click="opcoes"></i></button>
                         </template>
-                    </v-tooltip>
+                    </v-tooltip> -->
+
+
+                    <v-menu open-on-click transition="slide-y-transition" color="grey-darken-3">
+                        <template v-slot:activator="{ props }">
+                            <i class="bi bi-list opcoes" v-bind="props" style="cursor: pointer"></i>
+                        </template>
+
+                        <v-card color="grey-darken-3" class="d-flex flex-column" :style="{border: '1px solid #263238'}">
+                            <span class="menuStatusSpan" :data-status_id="statusId" @click="console.log('click')">Detalhes</span>
+                            <span class="menuStatusSpan">Excluir</span>
+                        </v-card>
+                    </v-menu>
+
                 </div>
             </v-card>
         </v-card>
@@ -108,7 +121,7 @@ export default defineComponent ({
 })
 </script>
 
-<style scoped>
+<style>
 
 .card {
 	min-height: 60px;
@@ -118,5 +131,13 @@ export default defineComponent ({
 
 .opcoes {
 	cursor: pointer;
+    padding: 0px 2px;
+    border-radius: 2px;
+    transition: .3s;
+}
+
+.opcoes:hover {
+    background-color: rgba(86, 86, 86, 0.367);
+    transition: .3s;
 }
 </style>

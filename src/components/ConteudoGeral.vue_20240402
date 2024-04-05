@@ -3,7 +3,7 @@
         <v-card class="board pa-4 h-screen d-flex flex-row overflow-x-auto gap-2 w-100 rounded-0" color="grey-darken-4">
 			<v-card v-for="status in statuses" :key="status.id" class="d-flex flex-column coluna" color="grey-darken-3" style="border-top: 3px orange solid">
 				
-				<TituloStatus :statusId="status.id" :statusTitle="status.title" :abrirModalNovaTarefa="openNovaTarefaModal"></TituloStatus>
+				<TituloStatus :statusId="status.id" :statusTitle="status.title" :abrirModalTarefa="openTarefaModal"></TituloStatus>
 				
 				<div class="overflow-y-auto px-2">
 					<VueDraggable v-model="status.tasks" class="cardContainer d-flex flex-column gap-2" group="statuses"
@@ -90,7 +90,7 @@
 
 			<v-card-actions class="justify-space-between">
 				<v-btn color="blue darken-1" text @click="closeNovaTarefaModal">Fechar</v-btn>
-				<v-btn color="blue darken-1" text @click="criarTarefa">Salvar</v-btn>
+				<v-btn color="blue darken-1" text @click="salvarTarefa">Salvar</v-btn>
 			</v-card-actions>
 		</v-card>
     </v-dialog>
@@ -157,7 +157,7 @@ export default defineComponent({
 			}			
 		];
 
-		const openNovaTarefaModal = (event) => {
+		const openTarefaModal = (event) => {
 			novaTarefaStatusId.value = event.target.dataset.status_id
 			modalNovaTarefaOpen.value = true;
 		};
@@ -241,7 +241,7 @@ export default defineComponent({
 			statuses.value = res.data
 		}
 
-		const criarTarefa = async () => {
+		const salvarTarefa = async () => {
 			let status_id = novaTarefaStatusId.value
 			
 			let req  = await axios.post('http://localhost:8000/api/task', {
@@ -322,14 +322,14 @@ export default defineComponent({
 			handleDragOver,
 			handleDragLeave,
 			modalNovaTarefaOpen,
-			openNovaTarefaModal,
+			openTarefaModal,
 			closeNovaTarefaModal,
 			cores,
 			taskTitle,
 			taskDescription,
 			corTarefaSelecionada,
 			selecionarCorTarefa,
-			criarTarefa,
+			salvarTarefa,
 			toastAtivo,
 			toastMessage,
 			tornarCorMaisIntensa

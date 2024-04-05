@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-main>
+    <v-main color="red-darken-4">
       <ConteudoGeral></ConteudoGeral>
     </v-main>
   </v-app>
@@ -21,3 +21,9 @@ export default {
   }),
 }
 </script>
+
+<style>
+html{
+  overflow-y: hidden;
+}
+</style>

@@ -1,5 +1,5 @@
 <template>
-    <v-card class="board pa-4 h-screen d-flex flex-row overflow-x-auto gap-2 w-100 rounded-0" color="blue-darken-4">
+    <v-card class="board  d-flex flex-row overflow-x-auto gap-2 rounded-0" elevation="0" color="transparent">
         <slot></slot>
     </v-card>
 </template>
@@ -18,12 +18,8 @@ export default defineComponent({
 
 <style>
 .board {
-	width: 98%;
-	display: flex;
-	flex-direction: row;
-	gap: 10px;
-	overflow-x: auto;
-	height: 95vh;
-	padding: 10px;
+    margin: 0px auto;
+    width: 100%;
+    height: 80vh;
 }
 </style>

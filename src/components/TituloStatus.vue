@@ -11,7 +11,7 @@
             <v-card color="grey-darken-3" class="d-flex flex-column" :style="{border: '1px solid #263238'}">
                 <span class="menuStatusSpan" :data-status_id="statusId" @click="abrirModalTarefa">Nova tarefa</span>
                 <span class="menuStatusSpan" @click="editStatus">Editar</span>
-                <span class="menuStatusSpan">Excluir</span>
+                <span class="menuStatusSpan" @click="excluirStatus">Excluir</span>
             </v-card>
         </v-menu>
     </h4>
@@ -33,7 +33,8 @@ import { defineComponent } from 'vue';
 
             const abrirModalTarefa = () => {
                 emit('emitAbrirModalTarefa', {
-                    statusId: props.statusId
+                    statusId: props.statusId,
+                    modoEdicao: false
                 })
             }
 
@@ -44,9 +45,17 @@ import { defineComponent } from 'vue';
                 })
             }
 
+            const excluirStatus = () => {
+                emit('emitExcluirStatus', {
+                    itemParaExcluir: 'status',
+                    id: props.statusId
+                })
+            }
+
             return {
                 editStatus,
-                abrirModalTarefa
+                abrirModalTarefa,
+                excluirStatus
             }
         }
     })

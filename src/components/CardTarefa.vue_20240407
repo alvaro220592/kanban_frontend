@@ -2,6 +2,7 @@
     <div>
         <v-card
             class="card h-10 cursor-grab pa-2"
+            :class="/*corClara(bgColor) ? 'text-grey-darken-4' : 'text-white'*/ 'normal'"
             color="grey-darken-3"
             :style="{
                 backgroundColor: 'grey',
@@ -9,40 +10,30 @@
             }"
         >
             <v-card class="elevation-0" color="transparent">
-                <div class="d-flex justify-space-between mb-1">
-                    
-                    <span class="font-weight-bold text-grey-lighten-2">{{ taskTitle }}</span>
+                <div class="d-flex justify-space-between">
+                    <div>
+
+                        <span class="font-weight-bold text-grey-lighten-2">{{ taskTitle }}</span>
+                        
+                        <div class="d-flex justify-space-between text-grey-lighten-1 my-1 p-2 rounded-1 cursor-pointer descricao_tarefa" @click="mudarExibicaoDescricao">
+                            <span>{{ exibirDescricao(taskDescription) }}</span>
+                            <i v-show="exibirDescricao(taskDescription).length > limiteExibicaoDescricao" class="bi bi-chevron-down icone_descricao"></i>
+                        </div>
+                    </div>
 
                     <v-menu open-on-click transition="slide-y-transition" color="grey-darken-3">
                         <template v-slot:activator="{ props }">
-                            <p>
-                                <i class="bi bi-list opcoes" v-bind="props" style="cursor: pointer"></i>
-                            </p>
+                            <i class="bi bi-list opcoes" v-bind="props" style="cursor: pointer"></i>
                         </template>
 
                         <v-card color="grey-darken-3" class="d-flex flex-column" :style="{border: '1px solid #263238'}">
-                            <span class="menuStatusSpan" :data-status_id="statusId" @click="editTarefa">Editar</span>
-                            <span class="menuStatusSpan" @click="excluirTarefa">Excluir</span>
+                            <span class="menuStatusSpan" :data-status_id="statusId" @click="console.log('click')">Detalhes</span>
+                            <span class="menuStatusSpan">Excluir</span>
                         </v-card>
                     </v-menu>
-                    
                 </div>
 
-                <div class="d-flex text-grey-lighten-1 my-1py-1 px-2" style="font-size: 14px;">
-                    <span>{{ formatarData(taskCreatedAt) }}</span>
-                </div>
-
-                <div class="d-flex justify-space-between text-grey-lighten-1 my-1 py-1 px-2 rounded-1 cursor-pointer descricao_tarefa" @click="mudarExibicaoDescricao">
-                    <span>{{ exibirDescricao(taskDescription) }}</span>
-                    <i v-show="exibirDescricao(taskDescription).length > limiteExibicaoDescricao" class="bi bi-chevron-down icone_descricao"></i>
-                </div>
-
-                <!-- <v-icon icon="mdi-circle" class="icone_prioridade" :style="{color: '#4CAF50'}"></v-icon> -->
-                <v-tooltip :text="'Prioridade: ' + taskPriorityName">
-                    <template v-slot:activator="{ props }">
-                        <v-icon v-bind="props" icon="mdi-circle" class="icone_prioridade" :style="{color: setTaskPriorityColor(taskPriorityName)}"></v-icon>
-                    </template>
-                </v-tooltip>
+                <v-icon icon="mdi-circle" class="icone_prioridade" :style="{color: '#4CAF50'}"></v-icon>
             </v-card>
         </v-card>
     </div>
@@ -51,28 +42,22 @@
 <script>
 import { defineComponent, ref } from 'vue'
 import axios from 'axios'
-import {format} from 'date-fns'
 
 export default defineComponent ({
     name: 'CardTarefa',
 
     props: {
         bgColor: String,
-        taskId: Number,
         taskTitle: String,
         taskOrder: Number,
         taskDescription: String,
-        taskCreatedAt: String,
-        taskPriorityName: String,
-        taskPriorityId: Number
     },
 
-    setup (props, {emit}) {
+    setup () {
         const taskShow = ref();
         const descricaoExibida = ref('')
         const refLimitarTexto = ref(true)
         const limiteExibicaoDescricao = ref(20)
-        const taskPriorityColor = ref('')
 
         // Função que usa a fórmula "YIQ" que serve pra detectar se a cor é clara ou escura
 		const corClara = (hexColor) => {
@@ -115,13 +100,19 @@ export default defineComponent ({
 			return `#${r}${g}${b}`;
 		}
 
+
+        // const opcoes = () => {
+        //     console.log('opções');
+        // }
+
         // abre um modal da tarefa
 		const opcoes = async (event) => {
             let card = event.target.closest('.card');
 			let task_id = card.dataset.task_id
 			let dados = await axios.get(`http://localhost:8000/api/task/${task_id}`)
 			taskShow.value = dados.data
-            // document.getElementById('a').innerText = taskShow.value.description
+            console.log(taskShow.value);
+			// document.getElementById('a').innerText = taskShow.value.description
 		}
 
         const limitarTexto = (texto) => {
@@ -158,42 +149,6 @@ export default defineComponent ({
             }
         }
 
-        const formatarData = (data) => {
-            return format(new Date(data), 'dd/MM/yyyy HH:mm')
-        }
-
-        const setTaskPriorityColor = (taskPriorityName) => {
-            let color = ''
-
-            if (taskPriorityName.toLowerCase() == 'baixa') {
-                color = '#7dd75b' // verde
-            } else
-
-            if (taskPriorityName.toLowerCase() == 'média') {
-                color = '#f3c918' // laranja
-            } else
-
-            if (taskPriorityName.toLowerCase() == 'alta') {
-                color = '#e54141' // vermelho
-            }
-
-            return color
-        }
-
-        const editTarefa = () => {
-            emit('emitEditTarefa',{
-                taskId: props.taskId,
-                modoEdicao: true
-            })
-        }
-
-        const excluirTarefa = () => {
-            emit('emitExcluirTarefa', {
-                itemParaExcluir: 'tarefa',
-                id: props.taskId
-            })
-        }
-
         return {
             opcoes,
             corClara,
@@ -205,12 +160,7 @@ export default defineComponent ({
             exibirDescricao,
             refLimitarTexto,
             mudarExibicaoDescricao,
-            limiteExibicaoDescricao,
-            formatarData,
-            taskPriorityColor,
-            setTaskPriorityColor,
-            editTarefa,
-            excluirTarefa
+            limiteExibicaoDescricao
         }
     }
 })
@@ -246,7 +196,6 @@ export default defineComponent ({
 }
 
 .icone_prioridade {
-    font-size: 15px;
-    cursor: default;
+    font-size: 14px;
 }
 </style>

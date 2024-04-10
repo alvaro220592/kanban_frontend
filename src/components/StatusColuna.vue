@@ -20,9 +20,9 @@ export default defineComponent({
 
 <style>
     .coluna {
-        min-width: 250px;
-        max-width: 250px;
-        height: 90vh;
+        min-width: 300px;
+        max-width: 300px;
+        height: 88vh;
         border-top: 3px orange solid
     }
 </style>

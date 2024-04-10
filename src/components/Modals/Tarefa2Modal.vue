@@ -11,6 +11,25 @@
 						<v-col class="cols-12 md-12">
 							<v-textarea label="Descrição" v-model="descricao"></v-textarea>
 						</v-col>
+
+
+					</v-row>
+
+					<v-row>
+						<v-col class="cols-12 md-12">
+							<v-select
+								class="cols-12 md-12"
+								color="white"
+								v-model="selectedPriority"
+								:items="priorities"
+								item-title="name"
+								item-value="id"
+								label="Prioridade"
+								searchable
+							>
+								<template #prepend-item> <v-card flat width="100%" height="100%" :style="{ backgroundColor: '#424242', position: 'absolute', top: '0px' }" /> </template>
+							</v-select>
+						</v-col>
 					</v-row>
 
                     <!-- DROPDOWN de seleção de cores -->
@@ -61,13 +80,42 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 export default {
+	props: {
+		priorities: Array,
+		valorInicialTituloTarefa: String,
+		valorInicialDescricaoTarefa: String,
+		valorInicialPrioridadeIdTarefa: Number,
+		valorInicialCorTarefa: String,
+	},
     setup (props, { emit }) {
-		const titulo = ref('')
-		const descricao = ref('')
-		const corTarefaSelecionada = ref('')
+		const titulo = ref(props.valorInicialTituloTarefa)
+		const descricao = ref(props.valorInicialDescricaoTarefa)
+		const selectedPriority = ref(props.valorInicialPrioridadeIdTarefa)
+		const corTarefaSelecionada = ref(props.valorInicialCorTarefa)
+		const modoEdicao = ref(false)
+
+		watch(() => props.valorInicialTituloTarefa, (novoValor) => {
+			// modoEdicao.value = true
+			titulo.value = novoValor
+		})
+
+		watch(() => props.valorInicialDescricaoTarefa, (novoValor) => {
+			// modoEdicao.value = true
+			descricao.value = novoValor
+		})
+
+		watch(() => props.valorInicialPrioridadeIdTarefa, (novoValor) => {
+			// modoEdicao.value = true
+			selectedPriority.value = novoValor
+		})
+
+		watch(() => props.valorInicialCorTarefa, (novoValor) => {
+			// modoEdicao.value = true
+			corTarefaSelecionada.value = novoValor
+		})
 
 		const cores = [
 			{
@@ -100,9 +148,17 @@ export default {
 			emit('emitSalvarTarefa', {
 				titulo: titulo.value,
 				descricao: descricao.value,
-				corSelecionada: corTarefaSelecionada.value
+				corSelecionada: corTarefaSelecionada.value,
+				prioridadeId: selectedPriority.value,
+                modoEdicao: modoEdicao.value
 			})
+			modoEdicao.value = false
 			fecharTarefaModal()
+
+		titulo.value = null
+		descricao.value = null
+		selectedPriority.value = null
+		corTarefaSelecionada.value = null
 		}
 
 		const fecharTarefaModal = () => {
@@ -123,7 +179,8 @@ export default {
 			salvarTarefa,
 			fecharTarefaModal,
 			selecionarCorTarefa,
-			corTarefaSelecionada
+			corTarefaSelecionada,
+			selectedPriority
 		}
     }
 }

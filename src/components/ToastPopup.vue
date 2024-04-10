@@ -1,10 +1,10 @@
 <template>
-    <v-snackbar timeout="3000" :color="cor" elevation="24" location="top right">
+    <v-snackbar timeout="3000" color="grey-darken-3" elevation="24" location="top right">
         <div class="d-flex flex-column justify-space-between">
             <span :style="{fontSize: '20px', fontStyle: 'italic'}">
                 {{ toastMessage }}
             </span>
-            <v-progress-linear indeterminate absolute color="deep-orange-darken-2"></v-progress-linear>
+            <v-progress-linear indeterminate absolute :color="cor"></v-progress-linear>
         </div>
     </v-snackbar>
 </template>

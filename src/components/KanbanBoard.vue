@@ -20,6 +20,6 @@ export default defineComponent({
 .board {
     margin: 0px auto;
     width: 100%;
-    height: 80vh;
+    height: 90vh;
 }
 </style>

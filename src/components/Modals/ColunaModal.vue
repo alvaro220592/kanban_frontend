@@ -27,17 +27,17 @@ export default defineComponent({
     name: 'ColunaModal',
 
 	props: {
-		valorInicialTitulo: String
+		valorInicialTituloStatus: String
 	},
 	
     setup (props, { emit }) {
 
         // const titulo = ref('')
-		const titulo = ref(props.valorInicialTitulo)
+		const titulo = ref(props.valorInicialTituloStatus)
 		const modoEdicao = ref(false)
 
 		// Se tiver um valor no campo, algumas coisas são definidas
-		watch(() => props.valorInicialTitulo, (novoValor) => {
+		watch(() => props.valorInicialTituloStatus, (novoValor) => {
 			modoEdicao.value = true
 			titulo.value = novoValor;
 		});
@@ -53,6 +53,7 @@ export default defineComponent({
         const fecharColunaModal = () => {
 			titulo.value = ''
 			emit('emitFecharColunaModal')
+			modoEdicao.value = false
 		}
 
         return {

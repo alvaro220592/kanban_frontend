@@ -53,7 +53,6 @@ export default defineComponent({
         const fecharColunaModal = () => {
 			titulo.value = ''
 			emit('emitFecharColunaModal')
-			modoEdicao.value = false
 		}
 
         return {

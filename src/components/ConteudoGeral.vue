@@ -230,6 +230,7 @@ export default defineComponent({
 			} else {
 				editandoStatus.value = true
 				statusId.value = dadosEmit.statusId
+				valorInicialTituloStatus.value = dadosEmit.title
 			}
 			abrirColunaModal()
 		}
